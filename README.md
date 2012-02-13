@@ -47,7 +47,11 @@ androidui:
       - navbar.ai
       - background.ai
 ```
-
+`icons` and `androidui` are arbitrary group names.  Any top level property in
+the YAML file is assumed to be a group name.  Images are rendered to png files
+and are placed in the path specified.  The `append` property is, as one would
+expect, appended to the end of the filename.  This makes it very easy to render
+images for both iphone and retina iphone. 
 Images are assumed to be in an `images` directory in your project directory.
 
 To install the plugin, make a `plugins` directory in your project directory.
