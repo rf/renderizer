@@ -12,6 +12,9 @@ It is assumed that your Illustrator files were created with a DPI of 72.  The
 scaling property given to Illustrator assumes this is the case; if it isn't,
 either edit the illustrator-render script or edit your images.
 
+For more information on DPIs see the 
+[wiki](https://github.com/russfrank/renderizer/wiki).
+
 Renderizer will look for an `images.yaml` file in your project directory (ie,
 next to the Resources and plugins folders).  It looks like this:
 
