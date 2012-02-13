@@ -77,14 +77,23 @@ appicons:
         dpi: 63
         append: '-Small-50'
 
+      - path: Resources/iphone
+        dpi: 647
+        rename: iTunesArtwork
+
    images:
       - Icon.svg
 ```
 
 `icons` and `androidui` are arbitrary group names.  Any top level property in
 the YAML file is assumed to be a group name.  Images are rendered to png files
-and are placed in the path specified.  The `append` property is, as one would
-expect, appended to the end of the filename.  
+and are placed in the path specified.  
+
+The `append` property is, as one would
+expect, appended to the end of the filename.  The `rename` property will force
+_each_ image to be renamed to the name specified, so it's really only useful
+if you're rendering a single image.
+
 Images are assumed to be in an `images` directory in your project directory.
 
 If you create `images/Icon.svg` at 57x57 points in inkscape, the above group 

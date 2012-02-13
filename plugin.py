@@ -92,14 +92,22 @@ def compile (config):
 
             # render each image
             for image in desc['images']:
-                filename = os.path.join(
-                    config['project_dir'],
-                    output['path'],
-                    os.path.splitext(os.path.basename(image))[0]
-                )
-                if 'append' in output:
-                    filename += output['append']
-                filename += ".png"
+                if 'rename' in output:
+                    filename = os.path.join(
+                        config['project_dir'],
+                        output['path'],
+                        output['rename']
+                    )
+                else:
+                    filename = os.path.join(
+                        config['project_dir'],
+                        output['path'],
+                        os.path.splitext(os.path.basename(image))[0]
+                    )
+                    if 'append' in output:
+                        filename += output['append']
+                    filename += ".png"
+
                 image = os.path.join(config['project_dir'], "images", image)
                 if modCheck.check(image, filename, output['dpi'], desc['backend']):
                     backends[desc['backend']](image, filename, output['dpi'], config)
