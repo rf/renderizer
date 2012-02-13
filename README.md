@@ -15,7 +15,7 @@ either edit the illustrator-render script or edit your images.
 Renderizer will look for an `images.yaml` file in your project directory (ie,
 next to the Resources and plugins folders).  It looks like this:
 
-```yml
+```YAML
 icons:
    backend: illustrator
 
