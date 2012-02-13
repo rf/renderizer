@@ -1,0 +1,24 @@
+#!/usr/bin/osascript
+
+-- usage: ./illustrator-render input output dpi
+-- dpi is used to calculate the scaling parameter
+
+on run argv
+   set input to (POSIX file (item 1 of argv) as alias)
+   set output to item 2 of argv
+   set scaling to item 3 of argv
+
+   set scaling to ((scaling / 72.0) * 100.0)
+
+   tell application "Adobe Illustrator"
+      activate
+      set uil to user interaction level
+      set user interaction level to never interact
+
+      open input 
+
+      export current document to output as PNG24 with options {class: PNG24 export options, horizontal scaling: scaling, vertical scaling: scaling, artboard clipping: true}
+
+      close current document saving no
+   end tell
+end run
