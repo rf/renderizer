@@ -46,13 +46,47 @@ androidui:
    images:
       - navbar.ai
       - background.ai
+
+appicons:
+   backend: inkscape
+
+   output:
+      - path: Resources/iphone
+        dpi: 72
+      
+      - path: Resources/iphone
+        dpi: 144
+        append: '@2x'
+
+      - path: Resources/iphone
+        dpi: 91
+        append: '-72'
+
+      - path: Resources/iphone
+        dpi: 36
+        append: '-Small'
+
+      - path: Resources/iphone
+        dpi: 73
+        append: '-Small@2x'
+
+      - path: Resources/iphone
+        dpi: 63
+        append: '-Small-50'
+
+   images:
+      - Icon.svg
 ```
+
 `icons` and `androidui` are arbitrary group names.  Any top level property in
 the YAML file is assumed to be a group name.  Images are rendered to png files
 and are placed in the path specified.  The `append` property is, as one would
 expect, appended to the end of the filename.  This makes it very easy to render
 images for both iphone and retina iphone. 
 Images are assumed to be in an `images` directory in your project directory.
+
+If you create `images/Icon.svg` at 57x57 pixels, the above group called `appicons`
+will render all of the icons needed by Apple for app submission.
 
 To install the plugin, make a `plugins` directory in your project directory.
 Then:
