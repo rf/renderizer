@@ -81,15 +81,15 @@ appicons:
 `icons` and `androidui` are arbitrary group names.  Any top level property in
 the YAML file is assumed to be a group name.  Images are rendered to png files
 and are placed in the path specified.  The `append` property is, as one would
-expect, appended to the end of the filename.  This makes it very easy to render
-images for both iphone and retina iphone. 
+expect, appended to the end of the filename.  
 Images are assumed to be in an `images` directory in your project directory.
 
-If you create `images/Icon.svg` at 57x57 pixels, the above group called `appicons`
+If you create `images/Icon.svg` at 57x57 points in inkscape, the above group 
+called `appicons`
 will render all of the icons needed by Apple for app submission.
 
 To install the plugin, make a `plugins` directory in your project directory.
-Then:
+CD into it, then:
 
 ```sh
 git clone git@github.com:russfrank/renderizer.git
