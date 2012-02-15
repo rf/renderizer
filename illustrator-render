@@ -8,8 +8,6 @@ on run argv
    set output to item 2 of argv
    set scaling to item 3 of argv
 
-   set scaling to ((scaling / 72.0) * 100.0)
-
    tell application "Adobe Illustrator"
       activate
       set uil to user interaction level

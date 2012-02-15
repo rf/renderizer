@@ -40,25 +40,29 @@ def launch (command):
         print unicode(err, errors='ignore')
         raise Exception('Command failed, check output')
 
-def illustrator (infile, outfile, dpi, config):
+def illustrator (infile, outfile, output, config):
     """Render an image with illustrator"""
-    print 'Rendering', infile, 'to', outfile, 'at dpi', dpi, 'with Illustrator.'
+    print 'Rendering', infile, 'to', outfile, 'at dpi', output['dpi'], 'with Illustrator.'
+    if 'srcdpi' not in output:
+        output['srcdpi'] = 72
+    if 'scaling' not in output:
+        output['scaling'] = (float(output['dpi']) / float(output['srcdpi'])) * 100.0
     command = [
         "osascript",
         config['project_dir'] + "/plugins/renderizer/illustrator-render",
         infile,
         outfile,
-        str(dpi)
+        str(output['scaling'])
     ]
     launch(command)
 
-def inkscape (infile, outfile, dpi, config):
+def inkscape (infile, outfile, output, config):
     """Render an image with inkscape"""
-    print 'Rendering', infile, 'to', outfile, 'at dpi', dpi, 'with Inkscape.'
+    print 'Rendering', infile, 'to', outfile, 'at dpi', output['dpi'], 'with Inkscape.'
     command = [
         "inkscape",
         "-d",
-        str(dpi),
+        str(output['dpi']),
         "-e",
         outfile,
         infile
@@ -110,7 +114,7 @@ def compile (config):
 
                 image = os.path.join(config['project_dir'], "images", image)
                 if modCheck.check(image, filename, output['dpi'], desc['backend']):
-                    backends[desc['backend']](image, filename, output['dpi'], config)
+                    backends[desc['backend']](image, filename, output, config)
                 else:
                     print image, 'not modified, not rendering'
 

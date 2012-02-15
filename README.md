@@ -8,13 +8,6 @@ to render.
 Included is a simple applescript for automating Adobe Illustrator.  Renderizer
 is capable of using either Inkscape or Illustrator as the render backend.
 
-It is assumed that your Illustrator files were created with a DPI of 72.  The
-scaling property given to Illustrator assumes this is the case; if it isn't,
-either edit the illustrator-render script or edit your images.
-
-For more information on DPIs see the 
-[wiki](https://github.com/russfrank/renderizer/wiki).
-
 Renderizer will look for an `images.yaml` file in your project directory (ie,
 next to the Resources and plugins folders).  It looks like this:
 
@@ -96,9 +89,16 @@ if you're rendering a single image.
 
 Images are assumed to be in an `images` directory in your project directory.
 
-If you create `images/Icon.svg` at 57x57 points in inkscape, the above group 
+Since Illustrator accepts a 'scaling' property for rendering and not a DPI,
+it is assumed your files were created with a DPI of 72.  If they weren't,
+use the 'srcdpi' to specify the source dpi.
+
+If you create `images/Icon.svg` at 57x57 *points* in inkscape, the above group 
 called `appicons`
 will render all of the icons needed by Apple for app submission.
+
+For more information on DPIs see the 
+[wiki](https://github.com/russfrank/renderizer/wiki).
 
 To install the plugin, make a `plugins` directory in your project directory.
 CD into it, then:
