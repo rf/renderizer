@@ -118,3 +118,10 @@ Then, add to your `<plugins>` section in your `tiapp.xml`:
 Now, your images will be rendered whenever you build your project.  Images are
 only re-rendered when their modification date has changed.  So, touch an image
 source if you need it re-rendered.
+
+You can also run the rendering process manually by running the plugin.py from your
+project directory:
+
+```
+python plugins/renderizer/plugin.py
+```
