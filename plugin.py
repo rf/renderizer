@@ -1,6 +1,6 @@
  #!/usr/bin/env python
 
-import os, subprocess, inspect, yaml
+import os, subprocess, inspect, yaml, shutil
 
 class ModCheck (object):
     """handles checking of modification times to see if we need to
@@ -81,6 +81,15 @@ def checkProps (names, pluginConfig, outputConfig):
                 return False
     return True
 
+# list of ti build props to check
+TiBuildProps = [
+    'simtype',
+    'devicefamily',
+    'platform',
+    'deploytype',
+    'command'
+]
+
 def compile (pluginConfig):
     """invoked by Titanium's build scripts, runs the compilation process"""
 
@@ -134,6 +143,16 @@ def compile (pluginConfig):
                     "specified in image group " + name
                 )
 
+            groupMatchesTiProps = False
+
+            # check properties on the group itself; if these don't match we set
+            # groupMatchesTiProps to false.  This will cause the output files
+            # for this group to be removed, thereby cleaning the output
+            # directory of links which dont match the current build
+            # configuration
+            if checkProps(TiBuildProps, pluginConfig, desc):
+                groupMatchesTiProps = True
+
             # ensure the outputConfig directory exists
             try:
                 os.makedirs(os.path.join(
@@ -143,44 +162,41 @@ def compile (pluginConfig):
             except os.error:
                 pass
 
+            # ensure build directory exists
+            try:
+                os.makedirs(os.path.join(
+                    pluginConfig['project_dir'],
+                    'build', 'images',
+                    outputConfig['path']
+                ))
+            except os.error:
+                pass
+
             # render each sourceImage
             for sourceImage in desc['images']:
 
-                # handle rename property
+                # handle `rename` and `append` properties
                 if 'rename' in outputConfig:
-                    computedFilename = os.path.join(
-                        pluginConfig['project_dir'],
-                        outputConfig['path'],
-                        outputConfig['rename']
-                    )
-                    tempFilename = os.path.join(
-                        pluginConfig['project_dir'],
-                        "build/images",
-                        outputConfig['path'],
-                        outputConfig['rename']
-                    )
-
-                # compute filename
+                    basename = outputConfig['rename']
                 else:
-                    computedFilename = os.path.join(
-                        pluginConfig['project_dir'],
-                        outputConfig['path'],
-                        os.path.splitext(os.path.basename(sourceImage))[0]
-                    )
-
-                    tempFilename = os.path.join(
-                        pluginConfig['project_dir'],
-                        "build/images",
-                        outputConfig['path'],
-                        os.path.splitext(os.path.basename(sourceImage))[0]
-                    )
-
-                    # handle append property
+                    basename = os.path.splitext(os.path.basename(sourceImage))[0]
                     if 'append' in outputConfig:
-                        computedFilename += outputConfig['append']
-                        tempFilename += outputConfig['append']
-                    computedFilename += ".png"
-                    tempFilename += ".png"
+                        basename += outputConfig['append']
+                    basename += '.png'
+
+                # compute filename and temp filename
+                computedFilename = os.path.join(
+                    pluginConfig['project_dir'],
+                    outputConfig['path'],
+                    basename
+                )
+
+                tempFilename = os.path.join(
+                    pluginConfig['project_dir'],
+                    'build', 'images',
+                    outputConfig['path'],
+                    basename
+                )
 
                 # generate path of source image
                 sourceImage = os.path.join(
@@ -190,30 +206,30 @@ def compile (pluginConfig):
                 )
 
                 # check to see if we need to re-render the image; if so, render
-                if not modCheck.check(sourceImage, computedFilename, outputConfig):
+                if not modCheck.check(sourceImage, tempFilename, outputConfig):
                     print sourceImage, 'not modified, not rendering'
-                    continue
+                else:
+                    # if we've gotten to this point, we're ready to render
+                    renderBackend = backends[outputConfig['backend']]
+                    renderBackend(
+                        sourceImage,
+                        tempFilename,
+                        outputConfig,
+                        pluginConfig
+                    )
 
-                # check these other properties provided to us in outputConfig
-                # when called by titanium build system
-                properties = [
-                    'simtype',
-                    'devicefamily',
-                    'platform',
-                    'deploytype',
-                    'command'
-                ]
-                if not checkProps(properties, pluginConfig, outputConfig):
-                    continue
+                # remove the output file; it will be replaced with a symlink to
+                # the rendered image, if applicable
+                try:
+                    os.remove(computedFilename)
+                except:
+                    pass
 
-                # if we've gotten to this point, we're ready to render
-                renderBackend = backends[outputConfig['backend']]
-                renderBackend(
-                    sourceImage,
-                    computedFilename,
-                    outputConfig,
-                    pluginConfig
-                )
+
+                # replace the output file with a symlink to the rendered image
+                # in build/images/, if the property check suceeds
+                if checkProps(TiBuildProps, pluginConfig, outputConfig) and groupMatchesTiProps:
+                    os.symlink(tempFilename, computedFilename)
 
 if __name__ == '__main__':
     config = {}

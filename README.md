@@ -45,6 +45,7 @@ androidui:
 
 appicons:
    backend: inkscape
+   platform: ios        # these images won't be put down on android
 
    output:
       - path: Resources/iphone
@@ -118,6 +119,11 @@ Then, add to your `<plugins>` section in your `tiapp.xml`:
 Now, your images will be rendered whenever you build your project.  Images are
 only re-rendered when their modification date has changed.  So, touch an image
 source if you need it re-rendered.
+
+Images are only dropped down if the Titanium properties specified in the group / output rule
+match.  So, if you specify that a group is ios only, it will only be put down
+for ios builds.  Images are rendered into build/images and then symlinked into the
+destination directory.
 
 Renderizer requires PyYAML, so if you don't already have this installed you'll
 have to install it:
