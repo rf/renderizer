@@ -1,36 +1,32 @@
  #!/usr/bin/env python
 
-import os, subprocess, cPickle
-from yaml import load
+import os, subprocess, inspect, yaml
 
 class ModCheck (object):
     """handles checking of modification times to see if we need to
        render the file or not"""
 
-    def __init__ (self, path):
+    def __init__ (self):
+        self.modData = {}
+
+    def check (self, sourceImage, computedFilename, outputConfig):
+        """returns true if the source file has a greater modification date than
+           the destination file, which would mean we need to re-render that
+           destination file"""
+
+        # if we haven't already stated this file, stat this file
+        if sourceImage not in self.modData:
+            self.modData[sourceImage] = os.stat(sourceImage).st_mtime
+
+        srcModTime = self.modData[sourceImage]
         try:
-            self.modData = cPickle.load(open(os.path.join(
-                path, "plugins", "renderizer", "moddata"), "rb"))
+            destModTime = os.stat(computedFilename).st_mtime
         except Exception:
-            print "Couldn't load moddata"
-            self.modData = {}
-        self.path = path
-
-    def check (self, path, out, dpi, backend):
-        """returns true if the file has been modified since last run,
-           false otherwise"""
-        key = path, out, dpi, backend
-        ret = True
-        mtime = os.stat(path).st_mtime
-        if key in self.modData:
-            if mtime <= self.modData[key]:
-                ret = False
-        self.modData[key] = mtime
-        return ret
-
-    def save (self):
-        cPickle.dump(self.modData, open(os.path.join(
-            self.path, "plugins", "renderizer", "moddata"), 'wb'))
+            destModTime = 0
+        if srcModTime > destModTime:
+            return True
+        else:
+            return False
 
 def launch (command):
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -40,40 +36,80 @@ def launch (command):
         print unicode(err, errors='ignore')
         raise Exception('Command failed, check output')
 
-def illustrator (infile, outfile, output, config):
+def illustrator (infile, outfile, outputConfig, pluginConfig):
     """Render an image with illustrator"""
-    print 'Rendering', infile, 'to', outfile, 'at dpi', output['dpi'], 'with Illustrator.'
-    if 'srcdpi' not in output:
-        output['srcdpi'] = 72
-    if 'scaling' not in output:
-        output['scaling'] = (float(output['dpi']) / float(output['srcdpi'])) * 100.0
+    print 'Rendering', infile, 'to', outfile, 'at dpi', outputConfig['dpi'], 'with Illustrator.'
+
+    if 'srcdpi' not in outputConfig:
+        outputConfig['srcdpi'] = 72
+    if 'scaling' not in outputConfig:
+        dpi = float(outputConfig['dpi'])
+        srcdpi = float(outputConfig['srcdpi'])
+        outputConfig['scaling'] = (dpi / srcdpi) * 100.0
+
     command = [
         "osascript",
-        config['project_dir'] + "/plugins/renderizer/illustrator-render",
+        pluginConfig['script_dir'] + "/illustrator-render",
         infile,
         outfile,
-        str(output['scaling'])
+        str(outputConfig['scaling'])
     ]
     launch(command)
 
-def inkscape (infile, outfile, output, config):
+def inkscape (infile, outfile, outputConfig, pluginConfig):
     """Render an image with inkscape"""
-    print 'Rendering', infile, 'to', outfile, 'at dpi', output['dpi'], 'with Inkscape.'
+    print 'Rendering', infile, 'to', outfile, 'at dpi', outputConfig['dpi'], 'with Inkscape.'
     command = [
         "inkscape",
         "-d",
-        str(output['dpi']),
+        str(outputConfig['dpi']),
         "-e",
         outfile,
         infile
     ]
     launch(command)
 
-def compile (config):
+def checkProps (names, pluginConfig, outputConfig):
+    """Checks to see if properties names[i] in pluginConfig is in the corresponding
+       array / is the corresponding string in outputConfig, if name is even in
+       outputConfig.  Returns True if everything matches, false otherwise"""
+    for name in names:
+        if name in pluginConfig and name in outputConfig:
+            if type(outputConfig[name]) != list:
+                outputConfig[name] = [outputConfig[name]]
+            if pluginConfig[name] not in outputConfig[name]:
+                return False
+    return True
+
+def compile (pluginConfig):
     """invoked by Titanium's build scripts, runs the compilation process"""
-    test = load(file('images.yaml', 'r'))
-    config['project_dir'] = config['project_dir'].encode('ascii', 'ignore')
-    modCheck = ModCheck(config['project_dir'])
+
+    # hacky crap to get directory of currently running script file
+    pluginConfig['script_dir'] = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+    print os.path.realpath(__file__)
+    print pluginConfig
+
+    # try to load images.yaml in a few different places
+    try:
+        test = yaml.load(file('images.yaml', 'r'))
+    except Exception:
+        pass
+
+    try:
+        test = yaml.load(file('../images.yaml', 'r'))
+    except Exception:
+        pass
+
+    try:
+        test = yaml.load(file(os.path.join(pluginConfig['script_dir'] + 'images.yaml', 'r')))
+    except Exception:
+        pass
+
+    if test == None:
+        raise Exception('images.yaml file not found!')
+
+    modCheck = ModCheck()
 
     backends = {}
     backends['illustrator'] = illustrator
@@ -81,46 +117,108 @@ def compile (config):
 
     for name, desc in test.items():
         print 'Rendering group', name
-        if desc['backend'] not in backends:
-            raise Exception("invalid backend")
 
-        for output in desc['output']:
-            # ensure the output directory exists
+        for outputConfig in desc['output']:
+
+            # validation
+            if 'backend' not in outputConfig:
+                raise Exception(
+                    "You must specify a render backend for output number " +
+                    str(desc['output'].index(outputConfig)) + " in image group "
+                    + name
+                )
+
+            if outputConfig['backend'] not in backends :
+                raise Exception(
+                    "Invalid backend " + outputConfig['backend'] +
+                    "specified in image group " + name
+                )
+
+            # ensure the outputConfig directory exists
             try:
                 os.makedirs(os.path.join(
-                    config['project_dir'],
-                    output['path']
+                    pluginConfig['project_dir'],
+                    outputConfig['path']
                 ))
             except os.error:
                 pass
 
-            # render each image
-            for image in desc['images']:
-                if 'rename' in output:
-                    filename = os.path.join(
-                        config['project_dir'],
-                        output['path'],
-                        output['rename']
-                    )
-                else:
-                    filename = os.path.join(
-                        config['project_dir'],
-                        output['path'],
-                        os.path.splitext(os.path.basename(image))[0]
-                    )
-                    if 'append' in output:
-                        filename += output['append']
-                    filename += ".png"
+            # render each sourceImage
+            for sourceImage in desc['images']:
 
-                image = os.path.join(config['project_dir'], "images", image)
-                if modCheck.check(image, filename, output['dpi'], desc['backend']):
-                    backends[desc['backend']](image, filename, output, config)
-                else:
-                    print image, 'not modified, not rendering'
+                # handle rename property
+                if 'rename' in outputConfig:
+                    computedFilename = os.path.join(
+                        pluginConfig['project_dir'],
+                        outputConfig['path'],
+                        outputConfig['rename']
+                    )
+                    tempFilename = os.path.join(
+                        pluginConfig['project_dir'],
+                        "build/images",
+                        outputConfig['path'],
+                        outputConfig['rename']
+                    )
 
-    modCheck.save()
+                # compute filename
+                else:
+                    computedFilename = os.path.join(
+                        pluginConfig['project_dir'],
+                        outputConfig['path'],
+                        os.path.splitext(os.path.basename(sourceImage))[0]
+                    )
+
+                    tempFilename = os.path.join(
+                        pluginConfig['project_dir'],
+                        "build/images",
+                        outputConfig['path'],
+                        os.path.splitext(os.path.basename(sourceImage))[0]
+                    )
+
+                    # handle append property
+                    if 'append' in outputConfig:
+                        computedFilename += outputConfig['append']
+                        tempFilename += outputConfig['append']
+                    computedFilename += ".png"
+                    tempFilename += ".png"
+
+                # generate path of source image
+                sourceImage = os.path.join(
+                    pluginConfig['project_dir'],
+                    "images",
+                    sourceImage
+                )
+
+                # check to see if we need to re-render the image; if so, render
+                if not modCheck.check(sourceImage, computedFilename, outputConfig):
+                    print sourceImage, 'not modified, not rendering'
+                    continue
+
+                # check these other properties provided to us in outputConfig
+                # when called by titanium build system
+                properties = [
+                    'simtype',
+                    'devicefamily',
+                    'platform',
+                    'deploytype',
+                    'command'
+                ]
+                if not checkProps(properties, pluginConfig, outputConfig):
+                    continue
+
+                # if we've gotten to this point, we're ready to render
+                renderBackend = backends[outputConfig['backend']]
+                renderBackend(
+                    sourceImage,
+                    computedFilename,
+                    outputConfig,
+                    pluginConfig
+                )
 
 if __name__ == '__main__':
     config = {}
+    # assume we were run in the project directory if we weren't run from
+    # titanium
     config['project_dir'] = os.getcwd()
     compile(config)
+
