@@ -119,6 +119,13 @@ Now, your images will be rendered whenever you build your project.  Images are
 only re-rendered when their modification date has changed.  So, touch an image
 source if you need it re-rendered.
 
+Renderizer requires PyYAML, so if you don't already have this installed you'll
+have to install it:
+
+```
+easy_install PyYaml
+```
+
 You can also run the rendering process manually by running the plugin.py from your
 project directory:
 
