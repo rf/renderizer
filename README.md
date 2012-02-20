@@ -34,6 +34,7 @@ icons:
 
 androidui:
    backend: illustrator
+   platform: android
 
    output:
       - path: Resources/images/android
