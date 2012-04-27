@@ -120,8 +120,6 @@ def compile (pluginConfig):
     if test == None:
         raise Exception('images.yaml file not found!')
 
-    print test
-
     modCheck = ModCheck()
 
     backends = {}
