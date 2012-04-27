@@ -100,23 +100,27 @@ def compile (pluginConfig):
     print pluginConfig
 
     # try to load images.yaml in a few different places
+    test = None
+    
     try:
-        test = yaml.load(file('images.yaml', 'r'))
+        test = yaml.load(open('images.yaml', 'r'))
     except Exception:
         pass
 
     try:
-        test = yaml.load(file('../images.yaml', 'r'))
+        test = yaml.load(open('../images.yaml', 'r'))
     except Exception:
         pass
 
     try:
-        test = yaml.load(file(os.path.join(pluginConfig['script_dir'] + 'images.yaml', 'r')))
+        test = yaml.load(open(os.path.join(pluginConfig['script_dir'], 'images.yaml'), 'r'))
     except Exception:
         pass
 
     if test == None:
         raise Exception('images.yaml file not found!')
+
+    print test
 
     modCheck = ModCheck()
 
@@ -130,14 +134,14 @@ def compile (pluginConfig):
         for outputConfig in desc['output']:
 
             # validation
-            if 'backend' not in outputConfig:
+            if 'backend' not in desc:
                 raise Exception(
                     "You must specify a render backend for output number " +
                     str(desc['output'].index(outputConfig)) + " in image group "
                     + name
                 )
 
-            if outputConfig['backend'] not in backends :
+            if desc['backend'] not in backends :
                 raise Exception(
                     "Invalid backend " + outputConfig['backend'] +
                     "specified in image group " + name
@@ -210,7 +214,7 @@ def compile (pluginConfig):
                     print sourceImage, 'not modified, not rendering'
                 else:
                     # if we've gotten to this point, we're ready to render
-                    renderBackend = backends[outputConfig['backend']]
+                    renderBackend = backends[desc['backend']]
                     renderBackend(
                         sourceImage,
                         tempFilename,
