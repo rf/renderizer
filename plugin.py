@@ -117,6 +117,12 @@ def compile (pluginConfig):
     except Exception:
         pass
 
+    # Titanium Studio needs the absolute path to the project
+    try:
+        test = yaml.load(open(os.path.join(pluginConfig['project_dir'], 'images.yaml'), 'r'))
+    except Exception:
+        pass
+
     if test == None:
         raise Exception('images.yaml file not found!')
 
