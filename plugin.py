@@ -135,6 +135,13 @@ def compile (pluginConfig):
     for name, desc in test.items():
         print 'Rendering group', name
 
+        # Load up renderizer plugins for this backend
+        plugins = []
+        if 'plugins' in desc:
+            for plugin in desc['plugins']:
+                module = __import__(plugin)
+                plugins.append(module.plugin(desc))
+
         for outputConfig in desc['output']:
 
             # validation
@@ -219,6 +226,11 @@ def compile (pluginConfig):
                 else:
                     # if we've gotten to this point, we're ready to render
                     renderBackend = backends[desc['backend']]
+
+                    # loop over renderizer plugins, call the beforeRender function
+                    for plugin in plugins:
+                        plugin.beforeRender(sourceImage, tempFilename, outputConfig, pluginConfig)
+
                     renderBackend(
                         sourceImage,
                         tempFilename,
@@ -226,13 +238,15 @@ def compile (pluginConfig):
                         pluginConfig
                     )
 
+                    for plugin in plugins:
+                        plugin.afterRender(sourceImage, tempFilename, outputConfig, pluginConfig)
+
                 # remove the output file; it will be replaced with a symlink to
                 # the rendered image, if applicable
                 try:
                     os.remove(computedFilename)
                 except:
                     pass
-
 
                 # replace the output file with a symlink to the rendered image
                 # in build/images/, if the property check suceeds
