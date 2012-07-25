@@ -1,6 +1,6 @@
  #!/usr/bin/env python
 
-import os, subprocess, inspect, yaml, shutil
+import os, subprocess, inspect, yaml, shutil, sys
 
 class ModCheck (object):
     """handles checking of modification times to see if we need to
@@ -95,9 +95,7 @@ def compile (pluginConfig):
 
     # hacky crap to get directory of currently running script file
     pluginConfig['script_dir'] = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    print os.path.realpath(__file__)
-    print pluginConfig
+    sys.path.insert(0, pluginConfig['script_dir'])
 
     # try to load images.yaml in a few different places
     test = None
@@ -239,7 +237,9 @@ def compile (pluginConfig):
                     )
 
                     for plugin in plugins:
-                        plugin.afterRender(sourceImage, tempFilename, outputConfig, pluginConfig)
+                        ret = plugin.afterRender(sourceImage, tempFilename, outputConfig, pluginConfig, computedFilename)
+                        if ret != None:
+                            computedFilename = ret
 
                 # remove the output file; it will be replaced with a symlink to
                 # the rendered image, if applicable
