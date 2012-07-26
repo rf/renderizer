@@ -6,10 +6,10 @@ class plugin:
     yaml data)."""
     print 'plugin initializing'
 
-  def beforeRender (self, sourceImage, tempFilename, outputConfig, pluginConfig):
+  def beforeRender (self, sourceImage, tempFilename, outputConfig, pluginConfig, computedFilename):
     """Called before rendering every image"""
     print 'beforeRender ', sourceImage
 
-  def afterRender (self, sourceImage, tempFilename, outputConfig, pluginConfig):
-    """Called after rendering every image"""
+  def afterRender (self, sourceImage, tempFilename, outputConfig, pluginConfig, computedFilename):
+    """Called after rendering every image. Can return a new computed filename"""
     print 'afterRender ', sourceImage
