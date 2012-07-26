@@ -146,10 +146,18 @@ I recently added support for plugins within the plugin.  These have hooks for
 before each render and after each render.  This way, you can make some
 custom modifications to images before or after rendering.
 
+If you'd like to write your own plugins I've included an `example_plugin.py`
+file which should get you started.  They're just python classes with a couple
+of methods.
+
 Included is a 9patch plugin (9patch.py).  To use it, you must be using the
 **inkscape** backend.  Make an svg with a layer called **9patch**.  Then, draw
 the 9patch lines on the sides of the image with large black rectangles on this
-**9patch** layer.  Then, with an `images.yaml` like this
+**9patch** layer. Should look something like this
+
+![inkscape screenshot](https://github.com/russfrank/renderizer/inkscapeshot.png)
+
+Then, with an `images.yaml` like this
 
 ```yaml
 android_default_9patch_portrait:
