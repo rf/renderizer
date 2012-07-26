@@ -155,7 +155,7 @@ Included is a 9patch plugin (9patch.py).  To use it, you must be using the
 the 9patch lines on the sides of the image with large black rectangles on this
 **9patch** layer. Should look something like this
 
-![inkscapescreenshot](https://github.com/russfrank/renderizer/blob/master/inkscapeshot.png)
+<img src="https://github.com/russfrank/renderizer/blob/master/inkscapeshot.png" />
 
 Then, with an `images.yaml` like this
 
