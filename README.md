@@ -51,7 +51,7 @@ appicons:
    output:
       - path: Resources/iphone
         dpi: 72
-      
+
       - path: Resources/iphone
         dpi: 144
         append: '@2x'
@@ -82,7 +82,7 @@ appicons:
 
 `icons` and `androidui` are arbitrary group names.  Any top level property in
 the YAML file is assumed to be a group name.  Images are rendered to png files
-and are placed in the path specified.  
+and are placed in the path specified.
 
 The `append` property is, as one would
 expect, appended to the end of the filename.  The `rename` property will force
@@ -95,11 +95,11 @@ Since Illustrator accepts a 'scaling' property for rendering and not a DPI,
 it is assumed your files were created with a DPI of 72.  If they weren't,
 use the 'srcdpi' to specify the source dpi.
 
-If you create `images/Icon.svg` at 57x57 *points* in inkscape, the above group 
+If you create `images/Icon.svg` at 57x57 *points* in inkscape, the above group
 called `appicons`
 will render all of the icons needed by Apple for app submission.
 
-For more information on DPIs see the 
+For more information on DPIs see the
 [wiki](https://github.com/russfrank/renderizer/wiki).
 
 To install the plugin, make a `plugins` directory in your project directory.
@@ -139,3 +139,56 @@ project directory:
 ```
 python plugins/renderizer/plugin.py
 ```
+
+# Plugin plugins & 9patch
+
+I recently added support for plugins within the plugin.  These have hooks for
+before each render and after each render.  This way, you can make some
+custom modifications to images before or after rendering.
+
+Included is a 9patch plugin (9patch.py).  To use it, you must be using the
+**inkscape** backend.  Make an svg with a layer called **9patch**.  Then, draw
+the 9patch lines on the sides of the image with large black rectangles on this
+**9patch** layer.  Then, with an `images.yaml` like this
+
+```yaml
+android_default_9patch_portrait:
+  backend: inkscape
+  plugins: [9patch]
+
+  output:
+
+    - path: platform/android/res/drawable-normal-port-mdpi/
+      dpi: 40
+      rename: 'background.9.png'
+
+    - path: platform/android/res/drawable-normal-port-hdpi/
+      dpi: 72
+      rename: 'background.9.png'
+
+    - path: platform/android/res/drawable-normal-port-xhdpi/
+      dpi: 120
+      rename: 'background.9.png'
+
+    - path: platform/android/res/drawable-xlarge-port-mdpi/
+      dpi: 120
+      rename: 'background.9.png'
+
+    - path: platform/android/res/drawable-large-port-mdpi/
+      dpi: 70
+      rename: 'background.9.png'
+
+  images:
+    - android/Default-portrait.9.svg
+```
+
+you'll get 9patched images for each dpi specified.
+
+This plugin actually renders just the 9patch lines to a temporary png file.
+Then, it examines the border and draws black areas of the 9patch temporary png
+to your rendered png.  The result is that you can render for multiple
+resolutions and have 9patch images for every resolution.
+
+# License
+
+MIT.
