@@ -254,7 +254,11 @@ def compile (pluginConfig):
                     os.symlink(tempFilename, computedFilename)
 
 if __name__ == '__main__':
-    config = {}
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--platform')
+    args = parser.parse_args()
+    config = {'platform': args.platform}
     # assume we were run in the project directory if we weren't run from
     # titanium
     config['project_dir'] = os.getcwd()
