@@ -195,6 +195,8 @@ def compile (pluginConfig):
                     basename = os.path.splitext(os.path.basename(sourceImage))[0]
                     if 'append' in outputConfig:
                         basename += outputConfig['append']
+                    if 'prepend' in outputConfig:
+                        basename = outputConfig['prepend'] + basename
                     basename += '.png'
 
                 # compute filename and temp filename
