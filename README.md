@@ -26,11 +26,16 @@ icons:
       - path: Resources/images/ipad
         dpi: 82
 
+      - path: Resources/images/android
+        prepend: 'ic_'
+        dpi: 82
+
    images:
       - icons/foo.ai
       - icons/bar.ai
       - icons/baz.ai
-      - icons/foobar.ai
+      - icons/foo[0-9].ai
+      - more_icons/*.ai
 
 androidui:
    backend: illustrator
@@ -90,7 +95,7 @@ the name specified, so it's really only useful if you're rendering a single imag
 
 Images are assumed to be in an `images` directory in your project directory.
 You can use wildcards (as well as other special characters supported by
-Python's [glob module](https://docs.python.org/3.1/library/glob.html) to specify
+Python's [glob module](https://docs.python.org/3.1/library/glob.html)) to specify
 groups of images under a path.
 
 Since Illustrator accepts a 'scaling' property for rendering and not a DPI,
