@@ -1,6 +1,6 @@
  #!/usr/bin/env python
 
-import os, subprocess, inspect, yaml, shutil, sys
+import os, subprocess, inspect, yaml, shutil, sys, glob
 
 class ModCheck (object):
     """handles checking of modification times to see if we need to
@@ -139,6 +139,15 @@ def compile (pluginConfig):
             for plugin in desc['plugins']:
                 module = __import__(plugin)
                 plugins.append(module.plugin(desc))
+
+        # Explode image paths
+        replacers = []
+        for line in desc['images']:
+            if '*' in line or '?' in line or '[' in line:
+                replacers.append(line)
+        for line in replacers:
+            desc['images'].remove(line)
+            desc['images'].extend(glob.glob(os.path.join(pluginConfig['project_dir'], 'images', line)))
 
         for outputConfig in desc['output']:
 

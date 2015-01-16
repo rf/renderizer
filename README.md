@@ -84,12 +84,14 @@ appicons:
 the YAML file is assumed to be a group name.  Images are rendered to png files
 and are placed in the path specified.
 
-The `append` property is, as one would
-expect, appended to the end of the filename.  The `rename` property will force
-_each_ image to be renamed to the name specified, so it's really only useful
-if you're rendering a single image.
+The `prepend` and `append` properties can be used to prepend or append text
+to the filename. The `rename` property will force _each_ image to be renamed to
+the name specified, so it's really only useful if you're rendering a single image.
 
 Images are assumed to be in an `images` directory in your project directory.
+You can use wildcards (as well as other special characters supported by
+Python's [glob module](https://docs.python.org/3.1/library/glob.html) to specify
+groups of images under a path.
 
 Since Illustrator accepts a 'scaling' property for rendering and not a DPI,
 it is assumed your files were created with a DPI of 72.  If they weren't,
