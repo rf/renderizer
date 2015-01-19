@@ -6,14 +6,13 @@ class ModCheck (object):
     """handles checking of modification times to see if we need to
        render the file or not"""
 
-    def __init__ (self, configPath):
+    def __init__ (self):
         self.modData = {}
-        self.configMTime = os.stat(configPath).st_mtime
 
     def check (self, sourceImage, computedFilename, outputConfig):
-        """returns true if the source or configuration files have
-           a greater modification date than the destination file, which
-           would mean we need to re-render the destination file"""
+        """returns true if the source file has a greater modification date than
+           the destination file, which would mean we need to re-render that
+           destination file"""
 
         # if we haven't already stated this file, stat this file
         if sourceImage not in self.modData:
@@ -24,7 +23,7 @@ class ModCheck (object):
             destModTime = os.stat(computedFilename).st_mtime
         except Exception:
             destModTime = 0
-        if srcModTime > destModTime or self.configMTime > destModTime:
+        if srcModTime > destModTime:
             return True
         else:
             return False
@@ -117,7 +116,7 @@ def compile (pluginConfig):
     else:
         raise Exception('images.yaml file not found!')
 
-    modCheck = ModCheck(yaml_path)
+    modCheck = ModCheck()
 
     backends = {}
     backends['illustrator'] = illustrator
