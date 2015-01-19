@@ -124,7 +124,8 @@ Then, add to your `<plugins>` section in your `tiapp.xml`:
 </plugins>
 ```
 
-Now, your images will be rendered whenever you build your project.  Images are re-rendered when their modification date has changed, or the YAML config has been updated.
+Now, your images will be rendered whenever you build your project.  Images are re-rendered
+when their modification date has changed, or the YAML config has been updated.
 
 Images are only dropped down if the Titanium properties specified in the group / output rule
 match.  So, if you specify that a group is ios only, it will only be put down
