@@ -6,13 +6,14 @@ class ModCheck (object):
     """handles checking of modification times to see if we need to
        render the file or not"""
 
-    def __init__ (self):
+    def __init__ (self, configPath):
         self.modData = {}
+        self.configMTime = os.stat(configPath).st_mtime
 
     def check (self, sourceImage, computedFilename, outputConfig):
-        """returns true if the source file has a greater modification date than
-           the destination file, which would mean we need to re-render that
-           destination file"""
+        """returns true if the source or configuration files have
+           a greater modification date than the destination file, which
+           would mean we need to re-render the destination file"""
 
         # if we haven't already stated this file, stat this file
         if sourceImage not in self.modData:
@@ -23,7 +24,7 @@ class ModCheck (object):
             destModTime = os.stat(computedFilename).st_mtime
         except Exception:
             destModTime = 0
-        if srcModTime > destModTime:
+        if srcModTime > destModTime or self.configMTime > destModTime:
             return True
         else:
             return False
@@ -98,33 +99,25 @@ def compile (pluginConfig):
     sys.path.insert(0, pluginConfig['script_dir'])
 
     # try to load images.yaml in a few different places
-    test = None
-    
-    try:
-        test = yaml.load(open('images.yaml', 'r'))
-    except Exception:
-        pass
+    locations = [
+        'images.yaml',
+        '../images.yaml',
+        os.path.join(pluginConfig['script_dir'], 'images.yaml'),
+        os.path.join(pluginConfig['project_dir'], 'images.yaml')
+    ]
 
-    try:
-        test = yaml.load(open('../images.yaml', 'r'))
-    except Exception:
-        pass
-
-    try:
-        test = yaml.load(open(os.path.join(pluginConfig['script_dir'], 'images.yaml'), 'r'))
-    except Exception:
-        pass
-
-    # Titanium Studio needs the absolute path to the project
-    try:
-        test = yaml.load(open(os.path.join(pluginConfig['project_dir'], 'images.yaml'), 'r'))
-    except Exception:
-        pass
-
-    if test == None:
+    for location in locations:
+        try:
+            test = yaml.load(open(location, 'r'))
+            # Save the correct path to images.yaml
+            yaml_path = location
+            break
+        except Exception:
+            pass
+    else:
         raise Exception('images.yaml file not found!')
 
-    modCheck = ModCheck()
+    modCheck = ModCheck(yaml_path)
 
     backends = {}
     backends['illustrator'] = illustrator
